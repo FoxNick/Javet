@@ -27,6 +27,7 @@ import com.caoccao.javet.interop.monitoring.V8SharedMemoryStatistics;
 import com.caoccao.javet.interop.options.RuntimeOptions;
 import com.caoccao.javet.interop.options.V8RuntimeOptions;
 import com.caoccao.javet.utils.JavetDateTimeUtils;
+import java.security.SecureRandom;
 
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -143,7 +144,7 @@ public class JavetEnginePool<R extends V8Runtime> implements IJavetEnginePool<R>
         internalLock = new Object();
         active = false;
         quitting = false;
-        random = new Random();
+        random = new SecureRandom();
         semaphore = null;
         startDaemon();
     }

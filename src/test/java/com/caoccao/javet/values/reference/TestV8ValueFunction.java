@@ -41,6 +41,7 @@ import com.caoccao.javet.values.V8Value;
 import com.caoccao.javet.values.primitive.V8ValueInteger;
 import com.caoccao.javet.values.primitive.V8ValueString;
 import com.caoccao.javet.values.primitive.V8ValueUndefined;
+import java.security.SecureRandom;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -1101,7 +1102,7 @@ public class TestV8ValueFunction extends BaseTestJavetRuntime {
     public void testFunctionCreationFailure() throws JavetException {
         final int size = 100;
         final int rounds = 100;
-        final Random random = new Random();
+        final Random random = new SecureRandom();
         MockAnnotationBasedCallbackReceiver mockAnnotationBasedCallbackReceiver =
                 new MockAnnotationBasedCallbackReceiver();
         String placeholder = "/* PlaceHolder */";
