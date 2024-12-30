@@ -18,6 +18,7 @@ package com.caoccao.javet.values.primitive;
 
 import com.caoccao.javet.BaseTestJavetRuntime;
 import com.caoccao.javet.exceptions.JavetException;
+import java.security.SecureRandom;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
@@ -40,7 +41,7 @@ public class TestV8ValueBigInteger extends BaseTestJavetRuntime {
 
     @Test
     public void testBigIntNegative() throws JavetException {
-        Random random = new Random();
+        Random random = new SecureRandom();
         BigInteger baseBigInteger = BigInteger.valueOf(2L).pow(65).multiply(BigInteger.valueOf(-1L));
         final int rounds = 5;
         for (int i = 0; i < rounds; i++) {
@@ -68,7 +69,7 @@ public class TestV8ValueBigInteger extends BaseTestJavetRuntime {
 
     @Test
     public void testBigIntPositive() throws JavetException {
-        Random random = new Random();
+        Random random = new SecureRandom();
         BigInteger baseBigInteger = BigInteger.valueOf(2L).pow(65);
         final int rounds = 5;
         for (int i = 0; i < rounds; i++) {

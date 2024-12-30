@@ -33,6 +33,7 @@ import com.caoccao.javet.interop.monitoring.V8HeapStatistics;
 import com.caoccao.javet.utils.JavetDateTimeUtils;
 import com.caoccao.javet.utils.JavetResourceUtils;
 import com.caoccao.javet.values.reference.V8ValueObject;
+import java.security.SecureRandom;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -104,7 +105,7 @@ public class TestJavetEnginePool extends BaseTestJavet {
     public void testDaemonThread() throws InterruptedException {
         javetEngineConfig.setWaitForEngineMaxRetryCount(5);
         IJavetLogger javetLogger = javetEngineConfig.getJavetLogger();
-        final Random random = new Random();
+        final Random random = new SecureRandom();
         final int threadCount = 100;
         final int semaphorePermits = 10;
         final int loopCount = 10;
