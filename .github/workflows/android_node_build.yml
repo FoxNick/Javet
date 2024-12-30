@@ -37,13 +37,13 @@ jobs:
             i18n_name: non-i18n
             cmake_flag:
             config_patch:
-          - android_arch: arm64
-            android_abi: arm64-v8a
+          - android_arch: arm
+            android_abi: armeabi-v7a
             i18n_name: i18n
             cmake_flag: -DENABLE_I18N=1
             config_patch: sed -i 's/--with-intl=none/--with-intl=full-icu/g' android_configure.py
-          - android_arch: x86_64
-            android_abi: x86_64
+          - android_arch: x86
+            android_abi: x86
             i18n_name: i18n
             cmake_flag: -DENABLE_I18N=1
             config_patch: sed -i 's/--with-intl=none/--with-intl=full-icu/g' android_configure.py
@@ -95,7 +95,7 @@ jobs:
         mv out out.${{ matrix.android_arch }}.${{ matrix.i18n_name }}
 
     - name: Copy the i18n
-      if: matrix.i18n_name == 'i18n' && matrix.android_arch == 'arm64'
+      if: matrix.i18n_name == 'i18n' && matrix.android_arch == 'arm'
       run: |
         mkdir icu-node
         cp ../node/deps/icu-tmp/*.dat icu-node
@@ -124,7 +124,7 @@ jobs:
 
     - name: Upload the i18n
       uses: actions/upload-artifact@v4
-      if: matrix.i18n_name == 'i18n' && matrix.android_arch == 'arm64'
+      if: matrix.i18n_name == 'i18n' && matrix.android_arch == 'arm'
       with:
         name: icu-node
         path: icu-node/*.dat
@@ -157,8 +157,8 @@ jobs:
 
     - name: Prepare JNI Libs i18n
       run: |
-        mkdir -p android/javet-android/src/main/jniLibs/arm64-v8a
-        mkdir -p android/javet-android/src/main/jniLibs/x86_64
+        mkdir -p android/javet-android/src/main/jniLibs/armeabi-v7a
+        mkdir -p android/javet-android/src/main/jniLibs/x86
 
     - name: Prepare JNI Libs non-i18n
       run: |
@@ -167,17 +167,17 @@ jobs:
         mkdir -p android/javet-android/src/main/jniLibs/x86
         mkdir -p android/javet-android/src/main/jniLibs/x86_64
 
-    - name: Download Javet arm64 i18n
+    - name: Download Javet arm i18n
       uses: actions/download-artifact@v4
       with:
-        name: javet-android-node-arm64-${{ env.JAVET_VERSION }}-i18n
-        path: android/javet-android/src/main/jniLibs/arm64-v8a
+        name: javet-android-node-arm-${{ env.JAVET_VERSION }}-i18n
+        path: android/javet-android/src/main/jniLibs/armeabi-v7a
 
-    - name: Download Javet x86_64 i18n
+    - name: Download Javet x86 i18n
       uses: actions/download-artifact@v4
       with:
-        name: javet-android-node-x86_64-${{ env.JAVET_VERSION }}-i18n
-        path: android/javet-android/src/main/jniLibs/x86_64
+        name: javet-android-node-x86-${{ env.JAVET_VERSION }}-i18n
+        path: android/javet-android/src/main/jniLibs/x86
 
     - name: Download Javet arm non-i18n
       uses: actions/download-artifact@v4
@@ -216,15 +216,15 @@ jobs:
         name: javet-android-node-${{ env.JAVET_VERSION }}
         path: android/javet-android/build/outputs/aar/javet*release.aar
 
-    - name: Delete Javet arm64 i18n
+    - name: Delete Javet arm i18n
       uses: geekyeggo/delete-artifact@v4
       with:
-        name: javet-android-node-arm64-${{ env.JAVET_VERSION }}-i18n
+        name: javet-android-node-arm-${{ env.JAVET_VERSION }}-i18n
 
-    - name: Delete Javet x86_64 i18n
+    - name: Delete Javet x86 i18n
       uses: geekyeggo/delete-artifact@v4
       with:
-        name: javet-android-node-x86_64-${{ env.JAVET_VERSION }}-i18n
+        name: javet-android-node-x86-${{ env.JAVET_VERSION }}-i18n
 
     - name: Delete Javet arm non-i18n
       uses: geekyeggo/delete-artifact@v4
