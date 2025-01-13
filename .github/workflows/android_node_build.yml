@@ -69,7 +69,7 @@ jobs:
       id: setup-ndk
       uses: nttld/setup-ndk@v1
       with:
-        ndk-version: r26d
+        ndk-version: r27
         local-cache: false
 
     - name: Setup Path
