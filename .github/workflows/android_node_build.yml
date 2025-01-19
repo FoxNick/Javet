@@ -78,7 +78,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: android-node-${{ matrix.android_arch }}-${{ matrix.i18n_name }}
-        path: out
+        path: out.${{ matrix.android_arch }}.${{ matrix.i18n_name }}
         
     - name: Copy the i18n
       if: matrix.i18n_name == 'i18n' && matrix.android_arch == 'arm64'
