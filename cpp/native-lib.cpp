@@ -81,7 +81,7 @@ namespace nodeonandroid {
             char buf[128];
             std::size_t nBytes = 0;
             JNIEnv *env = nullptr;
-            gJavaVM->AttachCurrentThread(&env, nullptr);
+            gJavaVM->AttachCurrentThread((void**)&env, nullptr);
             jclass thiz = env->GetObjectClass(gJavaObj);
             jmethodID nativeCallback = env->GetMethodID(thiz, "onOutput", "(Ljava/lang/String;)V");
             while ((nBytes = read(pfd[0], buf, sizeof buf - 1)) > 0) {
