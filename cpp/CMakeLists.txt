@@ -209,10 +209,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android
     set(JAVET_LIB_PREFIX "javet")
     set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-    # 复制原始列表到一个临时变量
-    set(TEMP_sourceFiles ${sourceFiles})
-    list(TEMP_sourceFiles INCLUDE REGEX "native-lib.cpp")
-    add_library(native-lib SHARED ${TEMP_sourceFiles})
+    add_library(native-lib SHARED jni/native-lib.cpp)
     
     add_library(Javet SHARED ${sourceFiles})
     add_library(JavetStatic STATIC ${sourceFiles})
