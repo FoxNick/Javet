@@ -209,7 +209,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android
     set(JAVET_LIB_PREFIX "javet")
     set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-    add_library(native-lib SHARED jni/native-lib.cpp)
+    add_library(native-lib SHARED native-lib.cpp)
     
     add_library(Javet SHARED ${sourceFiles})
     add_library(JavetStatic STATIC ${sourceFiles})
