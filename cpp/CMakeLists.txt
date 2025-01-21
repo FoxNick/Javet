@@ -350,7 +350,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android
 else()
     message(FATAL_ERROR "Linux (x86-64, arm64), Mac OS (x86-64, arm64), Windows (x86-64) and Android are the only supported Operating Systems.")
 endif()
-set_target_properties(native-lib PROPERTIES OUTPUT_NAME "${JAVET_LIB_PREFIX}-${JAVET_LIB_SYSTEM}${JAVET_LIB_ARCH}.native-lib")
+set_target_properties(native-lib PROPERTIES OUTPUT_NAME "${JAVET_LIB_PREFIX}-${JAVET_LIB_SYSTEM}${JAVET_LIB_ARCH}${JAVET_LIB_I18N}.native-lib")
 set_target_properties(Javet PROPERTIES OUTPUT_NAME "${JAVET_LIB_PREFIX}-${JAVET_LIB_TYPE}-${JAVET_LIB_SYSTEM}${JAVET_LIB_ARCH}${JAVET_LIB_I18N}.v.${JAVET_VERSION}")
 include_directories(${includeDirs})
 add_custom_command(TARGET native-lib POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:native-lib> "${JAVA_RESOURCES_DIR}/$<TARGET_FILE_NAME:native-lib>")
