@@ -82,7 +82,9 @@ jobs:
         ${{ matrix.config_patch }}
         ./android-configure ${{ steps.setup-ndk.outputs.ndk-path }} 24 ${{ matrix.android_arch }}
         make -j4
+        mkdir out-node        
         mv out out.${{ matrix.android_arch }}.${{ matrix.i18n_name }}
+        cp -rp out.${{ matrix.android_arch }}.${{ matrix.i18n_name }} out-node
 
     - name: Copy the i18n
       if: matrix.i18n_name == 'i18n' && matrix.android_arch == 'arm64'
@@ -118,6 +120,12 @@ jobs:
       with:
         name: icu-node
         path: icu-node/*.dat
+
+    - name: Upload out-node
+      uses: actions/upload-artifact@v4
+      with:
+        name: out-node
+        path: out-node
 
   build_javet_aar:
     needs: [build_javet_lib]
