@@ -83,12 +83,17 @@ jobs:
         ./android-configure ${{ steps.setup-ndk.outputs.ndk-path }} 24 ${{ matrix.android_arch }}
         make -j4    
         mv out out.${{ matrix.android_arch }}.${{ matrix.i18n_name }}
-      
+
+    - name: Copy out-node
+      run: |
+        mkdir out-node
+        cp -rp ../node/out.${{ matrix.android_arch }}.${{ matrix.i18n_name }} out-node  
+        
     - name: Upload out-node
       uses: actions/upload-artifact@v4
       with:
-        name: out-node-out.${{ matrix.android_arch }}-${{ matrix.i18n_name }}
-        path: ../node/out.${{ matrix.android_arch }}.${{ matrix.i18n_name }}
+        name: out-node
+        path: out-node
 
     - name: Copy the i18n
       if: matrix.i18n_name == 'i18n' && matrix.android_arch == 'arm64'
