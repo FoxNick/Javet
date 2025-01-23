@@ -88,12 +88,6 @@ jobs:
       run: |
         mkdir out-node
         cp -rp ../node/out.${{ matrix.android_arch }}.${{ matrix.i18n_name }} out-node  
-        
-    - name: Upload out-node
-      uses: actions/upload-artifact@v4
-      with:
-        name: out-node
-        path: out-node
 
     - name: Copy the i18n
       if: matrix.i18n_name == 'i18n' && matrix.android_arch == 'arm64'
@@ -116,7 +110,13 @@ jobs:
       run: |
         cd ${{ env.ROOT }}/Javet/cpp
         sh ./build-android.sh -DNODE_DIR=${{ env.ROOT }}/node -DCMAKE_ANDROID_NDK=${{ steps.setup-ndk.outputs.ndk-path }} -DCMAKE_ANDROID_ARCH=${{ matrix.android_arch }} ${{ matrix.cmake_flag }}
-
+        
+    - name: Upload out-node
+      uses: actions/upload-artifact@v4
+      with:
+        name: out-node
+        path: out-node
+        
     - name: Upload the Artifact
       uses: actions/upload-artifact@v4
       with:
