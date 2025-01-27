@@ -24,6 +24,7 @@ import java.nio.ByteBuffer;
  * @since 0.8.0
  */
 public interface IV8Native {
+    void setOutputCallback(OutputCallback callback);
 
     void allowCodeGenerationFromStrings(long v8RuntimeHandle, boolean allow);
 
