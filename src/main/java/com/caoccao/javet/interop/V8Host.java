@@ -20,7 +20,6 @@ import com.caoccao.javet.enums.JSRuntimeType;
 import com.caoccao.javet.exceptions.JavetError;
 import com.caoccao.javet.exceptions.JavetException;
 import com.caoccao.javet.interfaces.IJavetLogger;
-import com.caoccao.javet.interfaces.OutputCallback;
 import com.caoccao.javet.interop.loader.JavetLibLoader;
 import com.caoccao.javet.interop.monitoring.V8SharedMemoryStatistics;
 import com.caoccao.javet.interop.monitoring.V8StatisticsFuture;
@@ -318,13 +317,7 @@ public final class V8Host {
                 throw lastException;
             }
         }
-        v8Native.setOutputCallback(new OutputCallback() {
-                        @Override
-                        public void onOutput(String output) {
-                            // 在这里处理输出。
-                            logger.info(output);
-                        }
-                    });
+        
         final long handle = v8Native.createV8Runtime(runtimeOptions);
         isolateCreated = true;
         V8Runtime v8Runtime;
