@@ -50,7 +50,7 @@ void startLoggingFromPipe() {
         while ((nBytes = read(pfd[0], buf, sizeof buf - 1)) > 0) {
             if (buf[nBytes - 1] == '\n') --nBytes;
             buf[nBytes] = 0;
-            jniEnv->CallVoidMethod(gJavaObj,nativeCallback, static_cast<jstring>(env->NewStringUTF(buf)));
+            jniEnv->CallVoidMethod(gJavaObj,nativeCallback, static_cast<jstring>(jniEnv->NewStringUTF(buf)));
             LOG_INFO(buf);
         }
     }, pfd);
