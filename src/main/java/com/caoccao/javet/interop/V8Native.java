@@ -33,6 +33,9 @@ import java.nio.ByteBuffer;
 class V8Native implements IV8Native {
     V8Native() {
     }
+    
+    @Override
+    public native void setOutputCallback(OutputCallback callback);
 
     @Override
     public native void allowCodeGenerationFromStrings(long v8RuntimeHandle, boolean allow);
