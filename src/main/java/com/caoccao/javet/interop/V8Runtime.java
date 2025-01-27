@@ -22,6 +22,7 @@ import com.caoccao.javet.exceptions.*;
 import com.caoccao.javet.interfaces.IEnumBitset;
 import com.caoccao.javet.interfaces.IJavetClosable;
 import com.caoccao.javet.interfaces.IJavetLogger;
+import com.caoccao.javet.interfaces.OutputCallback;
 import com.caoccao.javet.interop.callback.*;
 import com.caoccao.javet.interop.converters.IJavetConverter;
 import com.caoccao.javet.interop.converters.JavetObjectConverter;
@@ -3612,6 +3613,13 @@ public class V8Runtime implements IJavetClosable, IV8Creatable, IV8Convertible {
      */
     public void setLogger(IJavetLogger logger) {
         this.logger = logger;
+        v8Native.setOutputCallback(new OutputCallback() {
+                        @Override
+                        public void onOutput(String output) {
+                            // 在这里处理输出。
+                            logger.info(output);
+                        }
+                    });
     }
 
     /**
