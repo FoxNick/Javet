@@ -17,6 +17,7 @@
 package com.caoccao.javet.interop;
 
 import java.nio.ByteBuffer;
+import com.caoccao.javet.interfaces.OutputCallback;
 
 /**
  * The interface V8 native.
