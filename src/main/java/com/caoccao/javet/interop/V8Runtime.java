@@ -3613,6 +3613,7 @@ public class V8Runtime implements IJavetClosable, IV8Creatable, IV8Convertible {
      */
     public void setLogger(IJavetLogger logger) {
         this.logger = logger;
+        promiseRejectCallback = new JavetPromiseRejectCallback(logger);
         v8Native.setOutputCallback(new OutputCallback() {
                         @Override
                         public void onOutput(String output) {
