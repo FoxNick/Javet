@@ -24,6 +24,7 @@
 #include "javet_logging.h"
 #include "javet_native.h"
 #include "javet_v8_runtime.h"
+#include <thread>
 
 JavaVM* GlobalJavaVM;
 std::thread logger;
