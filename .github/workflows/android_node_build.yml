@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 env:
-  JAVET_NODE_VERSION: 22.14.0
+  JAVET_NODE_VERSION: 22.13.1
   JAVET_VERSION: 4.1.1
   ROOT: /home/runner/work/Javet
 
@@ -81,9 +81,15 @@ jobs:
         git apply < ../Javet/scripts/patches/android/node/test_crypto_clienthello.cc.patch
         ${{ matrix.config_patch }}
         ./android-configure ${{ steps.setup-ndk.outputs.ndk-path }} 24 ${{ matrix.android_arch }}
-        make -j$(getconf _NPROCESSORS_ONLN)  
+        make -j$(getconf _NPROCESSORS_ONLN) LDFLAGS="-static" CFLAGS="-static" CXXFLAGS="-static"
         mv out out.${{ matrix.android_arch }}.${{ matrix.i18n_name }}
 
+    - name: Upload Node Directory
+      uses: actions/upload-artifact@v4
+      with:
+        name: node-${{ matrix.android_arch }}-${{ matrix.i18n_name }}
+        path: ${{ env.ROOT }}/node/out.${{ matrix.android_arch }}.${{ matrix.i18n_name }}
+        
     - name: Copy the i18n
       if: matrix.i18n_name == 'i18n' && matrix.android_arch == 'arm64'
       run: |
