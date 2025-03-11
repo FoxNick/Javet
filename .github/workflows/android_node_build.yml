@@ -81,7 +81,7 @@ jobs:
         git apply < ../Javet/scripts/patches/android/node/test_crypto_clienthello.cc.patch
         ${{ matrix.config_patch }}
         ./android-configure ${{ steps.setup-ndk.outputs.ndk-path }} 24 ${{ matrix.android_arch }}
-        make -j$(getconf _NPROCESSORS_ONLN) LDFLAGS="-static" CFLAGS="-static" CXXFLAGS="-static"
+        make -j$(getconf _NPROCESSORS_ONLN)
         mv out out.${{ matrix.android_arch }}.${{ matrix.i18n_name }}
 
     - name: Upload Node Directory
