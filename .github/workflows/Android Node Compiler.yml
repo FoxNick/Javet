@@ -20,7 +20,8 @@ jobs:
         ref: ${{ env.NODE_VERSION }}
 
     - name: Setup NDK
-      uses: android-actions/setup-android-ndk@v1
+      id: setup-ndk
+      uses: nttld/setup-ndk@v1
       with:
         ndk-version: ${{ env.NDK_VERSION }}
         
