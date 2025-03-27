@@ -2,10 +2,7 @@ name: Android Node.js Compiler
 
 on:
   workflow_dispatch:    # 支持手动触发
-  push:
-    tags:
-      - 'v*'            # 标签触发时自动构建
-
+  
 env:
   NDK_VERSION: r26b     # 使用稳定版NDK[3,8](@ref)
   NODE_VERSION: v22.14.0 # 指定Node版本[1](@ref)
