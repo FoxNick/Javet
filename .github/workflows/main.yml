@@ -1,0 +1,76 @@
+name: Android Node.js Compiler
+
+on:
+  workflow_dispatch:    # 支持手动触发
+  push:
+    tags:
+      - 'v*'            # 标签触发时自动构建
+
+env:
+  NDK_VERSION: r26b     # 使用稳定版NDK[3,8](@ref)
+  NODE_VERSION: v20.12.2 # 指定Node版本[1](@ref)
+  ANDROID_ARCH: arm64   # 目标架构(支持arm/arm64/x64)
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        repository: nodejs/node   # 官方源码仓库
+        ref: ${{ env.NODE_VERSION }}
+
+    - name: Setup NDK
+      uses: android-actions/setup-android-ndk@v1
+      with:
+        ndk-version: ${{ env.NDK_VERSION }}
+        
+    - name: Configure Toolchain
+      shell: bash
+      run: |
+        # 生成独立工具链[3,6](@ref)
+        $ANDROID_NDK_ROOT/build/tools/make_standalone_toolchain.py \
+          --arch=${{ env.ANDROID_ARCH }} \
+          --api=21 \
+          --install-dir=ndk-standalone
+
+    - name: Set Env Variables
+      shell: bash
+      run: |
+        echo "CC=$(pwd)/ndk-standalone/bin/clang" >> $GITHUB_ENV
+        echo "CXX=$(pwd)/ndk-standalone/bin/clang++" >> $GITHUB_ENV
+        echo "AR=$(pwd)/ndk-standalone/bin/llvm-ar" >> $GITHUB_ENV
+        echo "STRIP=$(pwd)/ndk-standalone/bin/llvm-strip" >> $GITHUB_ENV
+        echo "CFLAGS=-static" >> $GITHUB_ENV
+        echo "CXXFLAGS=-static" >> $GITHUB_ENV
+
+    - name: Configure Build
+      shell: bash
+      run: |
+        ./configure \
+          --dest-cpu=${{ env.ANDROID_ARCH }} \
+          --dest-os=android \
+          --cross-compiling \
+          --enable-static \
+          --without-npm \
+          --openssl-no-asm \
+          --ninja
+
+    - name: Compile Node
+      shell: bash
+      run: |
+        make -j$(nproc) V=1
+        
+    - name: Validate Binary
+      shell: bash
+      run: |
+        file out/Release/node
+        ./out/Release/node -v | grep ${{ env.NODE_VERSION }}
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: node-android-${{ env.ANDROID_ARCH }}
+        path: out/Release/node
