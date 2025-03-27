@@ -8,7 +8,7 @@ on:
 
 env:
   NDK_VERSION: r26b     # 使用稳定版NDK[3,8](@ref)
-  NODE_VERSION: v20.12.2 # 指定Node版本[1](@ref)
+  NODE_VERSION: v22.14.0 # 指定Node版本[1](@ref)
   ANDROID_ARCH: arm64   # 目标架构(支持arm/arm64/x64)
 
 jobs:
