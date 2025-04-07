@@ -64,6 +64,7 @@ endif()
 # Initialization
 project(Javet)
 aux_source_directory("jni" sourceFiles)
+aux_source_directory("native" sourceFiles2)
 set(includeDirs $ENV{JAVA_HOME}/include)
 set(importLibraries)
 set(JAVET_LIB_ARCH "")
@@ -207,9 +208,12 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android" OR CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     project(JavetStatic)
     set(JAVET_LIB_PREFIX "javet")
+    set(NATIVE_LIB_PREFIX "native")
     set(CMAKE_POSITION_INDEPENDENT_CODE ON)
     add_library(Javet SHARED ${sourceFiles})
     add_library(JavetStatic STATIC ${sourceFiles})
+    add_library(Native SHARED ${sourceFiles2})
+    add_library(NativeStatic STATIC ${sourceFiles2})
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-invalid-offsetof -O3 -fno-rtti ")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-invalid-offsetof -O3 -fno-rtti ")
     if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "(arm64|x86_64|aarch64)")
@@ -260,9 +264,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android
         set(JAVET_LIB_SYSTEM "android")
         add_definitions(-D__ANDROID__)
         list(APPEND includeDirs $ENV{JAVA_HOME}/include/linux)
-        if (CMAKE_ANDROID_ARCH STREQUAL "arm")
-            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m32 ")
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32 ")
+
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-unknown-pragmas -Wno-unused-function -Wno-unused-variable -funroll-loops -ftree-vectorize -ffast-math -fpermissive -fPIC ")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-unknown-pragmas -Wno-unused-function -Wno-unused-variable -funroll-loops -ftree-vectorize -ffast-math -fpermissive -fPIC ")
         if(DEFINED V8_DIR)
@@ -283,7 +285,11 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android
                 set_target_properties(${importLibrary} PROPERTIES IMPORTED_LOCATION ${NODE_DIR}/out.${CMAKE_ANDROID_ARCH}.${OUT_DIR_SUFFIX}/Release/lib${importLibrary}.a)
             endforeach(importLibrary)
             list(REMOVE_ITEM importLibraries v8_init)
-
+            target_link_libraries(Native PUBLIC -Wl,--whole-archive ${importLibraries} -Wl,--no-whole-archive
+                v8_init -llog -static-libgcc -static-libstdc++ "${libgcc}")
+            target_link_libraries(NativeStatic PUBLIC -Wl,--whole-archive ${importLibraries} -Wl,--no-whole-archive
+                v8_init -llog -static-libgcc -static-libstdc++ "${libgcc}")
+                
             target_link_libraries(Javet PUBLIC -Wl,--whole-archive ${importLibraries} -Wl,--no-whole-archive
                 v8_init -llog -static-libgcc -static-libstdc++ "${libgcc}")
             target_link_libraries(JavetStatic PUBLIC -Wl,--whole-archive ${importLibraries} -Wl,--no-whole-archive
@@ -341,9 +347,12 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android
         message(FATAL_ERROR "Windows (arm64) is not supported.")
     endif()
     set_target_properties(JavetStatic PROPERTIES OUTPUT_NAME "${JAVET_LIB_PREFIX}-${JAVET_LIB_TYPE}-${JAVET_LIB_SYSTEM}${JAVET_LIB_ARCH}${JAVET_LIB_I18N}.v.${JAVET_VERSION}")
+    set_target_properties(NativeStatic PROPERTIES OUTPUT_NAME "${NATIVE_LIB_PREFIX}-${JAVET_LIB_TYPE}-${JAVET_LIB_SYSTEM}${JAVET_LIB_ARCH}${JAVET_LIB_I18N}.v.${JAVET_VERSION}")
 else()
     message(FATAL_ERROR "Linux (x86-64, arm64), Mac OS (x86-64, arm64), Windows (x86-64) and Android are the only supported Operating Systems.")
 endif()
 set_target_properties(Javet PROPERTIES OUTPUT_NAME "${JAVET_LIB_PREFIX}-${JAVET_LIB_TYPE}-${JAVET_LIB_SYSTEM}${JAVET_LIB_ARCH}${JAVET_LIB_I18N}.v.${JAVET_VERSION}")
+set_target_properties(Native PROPERTIES OUTPUT_NAME "${NATIVE_LIB_PREFIX}-${JAVET_LIB_TYPE}-${JAVET_LIB_SYSTEM}${JAVET_LIB_ARCH}${JAVET_LIB_I18N}.v.${JAVET_VERSION}")
 include_directories(${includeDirs})
 add_custom_command(TARGET Javet POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:Javet> "${JAVA_RESOURCES_DIR}/$<TARGET_FILE_NAME:Javet>")
+add_custom_command(TARGET Native POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:Native> "${JAVA_RESOURCES_DIR}/$<TARGET_FILE_NAME:Native>")
