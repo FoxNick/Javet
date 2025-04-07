@@ -19,9 +19,9 @@ jobs:
         include:
           - android_arch: arm
             android_abi: armeabi-v7a
-            i18n_name: non-i18n
-            cmake_flag:
-            config_patch:
+            i18n_name: i18n
+            cmake_flag: -DENABLE_I18N=1
+            config_patch: sed -i 's/--with-intl=none/--with-intl=full-icu --partly-static/g' android_configure.py
           - android_arch: x86
             android_abi: x86
             i18n_name: non-i18n
