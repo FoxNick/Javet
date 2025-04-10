@@ -39,15 +39,11 @@ jobs:
 
     - name: Setup Ubuntu dependencies
       run: |
-        sudo apt-get update
         sudo apt-get install -y \
           execstack \
           gcc-multilib \
           g++-multilib \
-          cmake \
-          ninja-build \
-          python3.11 \
-          python3.11-distutils
+          ninja-build
 
     - name: Setup Python environment
       uses: actions/setup-python@v5
