@@ -70,12 +70,10 @@ jobs:
 
     - name: Clone Node.js repository
       run: |
+        cd ${{ env.ROOT }}
         git clone https://github.com/nodejs/node.git
         cd node
         git checkout v${{ env.JAVET_NODE_VERSION }}
-
-    - name: Apply patches
-      run: |
         git apply < ../Javet/scripts/patches/android/node/android_configure.py.patch
         git apply < ../Javet/scripts/patches/android/node/common.gypi.patch
         git apply < ../Javet/scripts/patches/android/node/configure.py.patch
@@ -83,9 +81,7 @@ jobs:
         git apply < ../Javet/scripts/patches/android/node/push_registers_asm.cc.patch
         git apply < ../Javet/scripts/patches/android/node/trap-handler.h.patch
         git apply < ../Javet/scripts/patches/android/node/test_crypto_clienthello.cc.patch
-
-    - name: Modify build configuration
-      run: |
+        ${matrix.config_patch}
         sed -i 's/enable_shared=1/enable_shared=0/g' android_configure.py
         sed -i 's/enable_static=0/enable_static=1/g' android_configure.py
         echo "export CONFIG_FLAGS=\"$CONFIG_FLAGS\"" >> android_configure.py
@@ -98,8 +94,7 @@ jobs:
           -DCMAKE_INSTALL_PREFIX=./install \
           -DANDROID_ABI=${{ matrix.android_abi }} \
           -DANDROID_PLATFORM=android-24 \
-          -DANDROID_STL=c++_shared \
-          ${matrix.config_patch}
+          -DANDROID_STL=c++_shared
         ninja -j$(nproc)
         ninja install
 
