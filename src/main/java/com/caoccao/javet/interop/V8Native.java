@@ -17,6 +17,8 @@
 package com.caoccao.javet.interop;
 
 import java.nio.ByteBuffer;
+import com.caoccao.javet.interfaces.OutputCallback;
+
 
 /**
  * The type V8 public native is the pure interface that defines the JNI C++ implementation.
