@@ -17,6 +17,8 @@
 package com.caoccao.javet.interop;
 
 import java.nio.ByteBuffer;
+import com.caoccao.javet.interfaces.OutputCallback;
+
 
 /**
  * The interface V8 native.
@@ -24,7 +26,8 @@ import java.nio.ByteBuffer;
  * @since 0.8.0
  */
 public interface IV8Native {
-
+    void setOutputCallback(OutputCallback callback);
+    
     void allowCodeGenerationFromStrings(long v8RuntimeHandle, boolean allow);
 
     Object arrayBufferCreate(long v8RuntimeHandle, int length);
