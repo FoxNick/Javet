@@ -24,8 +24,49 @@
 #include "javet_logging.h"
 #include "javet_native.h"
 #include "javet_v8_runtime.h"
+#include <thread>
 
 JavaVM* GlobalJavaVM;
+std::thread logger;
+static int pfd[2];
+jobject gJavaObj = nullptr;
+
+void redirectStreamsToPipe() {
+    setvbuf(stdout, 0, _IOLBF, 0);
+    setvbuf(stderr, 0, _IONBF, 0);
+
+    pipe(pfd);
+    dup2(pfd[1], 1);
+    dup2(pfd[1], 2);
+}
+
+void startLoggingFromPipe() {
+    logger = std::thread([](int *pipefd) {
+        char buf[128];
+        std::size_t nBytes = 0;
+        FETCH_JNI_ENV(GlobalJavaVM);
+        jclass thiz = jniEnv->GetObjectClass(gJavaObj);
+        jmethodID nativeCallback = jniEnv->GetMethodID(thiz, "onOutput", "(Ljava/lang/String;)V");
+        while ((nBytes = read(pfd[0], buf, sizeof buf - 1)) > 0) {
+            if (buf[nBytes - 1] == '\n') --nBytes;
+            buf[nBytes] = 0;
+            jniEnv->CallVoidMethod(gJavaObj,nativeCallback, static_cast<jstring>(jniEnv->NewStringUTF(buf)));
+            //LOG_INFO(buf);
+        }
+    }, pfd);
+
+    logger.detach();
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_caoccao_javet_interop_V8Native_setOutputCallback(JNIEnv *env, jobject, jobject callback) {
+    gJavaObj = env->NewGlobalRef(callback);
+
+    redirectStreamsToPipe();
+    startLoggingFromPipe();
+}
+
 
 jint JNI_OnLoad(JavaVM* javaVM, void* reserved) {
     LOG_INFO("JNI_Onload() begins.");
