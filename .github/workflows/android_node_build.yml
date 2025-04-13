@@ -197,23 +197,3 @@ jobs:
       with:
         name: javet-android-node-${{ env.JAVET_VERSION }}
         path: android/javet-android/build/outputs/aar/javet*release.aar
-
-    - name: Delete Javet arm64 i18n
-      uses: geekyeggo/delete-artifact@v4
-      with:
-        name: javet-android-node-arm64-${{ env.JAVET_VERSION }}-i18n
-
-    - name: Delete Javet x86_64 i18n
-      uses: geekyeggo/delete-artifact@v4
-      with:
-        name: javet-android-node-x86_64-${{ env.JAVET_VERSION }}-i18n
-
-    - name: Delete Javet arm non-i18n
-      uses: geekyeggo/delete-artifact@v4
-      with:
-        name: javet-android-node-arm-${{ env.JAVET_VERSION }}-non-i18n
-
-    - name: Delete Javet x86 non-i18n
-      uses: geekyeggo/delete-artifact@v4
-      with:
-        name: javet-android-node-x86-${{ env.JAVET_VERSION }}-non-i18n
