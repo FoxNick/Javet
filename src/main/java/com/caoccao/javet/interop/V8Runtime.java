@@ -44,6 +44,7 @@ import com.caoccao.javet.values.primitive.*;
 import com.caoccao.javet.values.reference.*;
 import com.caoccao.javet.values.reference.builtin.V8ValueBuiltInSymbol;
 import com.caoccao.javet.values.virtual.V8VirtualValue;
+import com.caoccao.javet.interfaces.OutputCallback;
 
 import java.io.File;
 import java.math.BigInteger;
@@ -3612,6 +3613,14 @@ public class V8Runtime implements IJavetClosable, IV8Creatable, IV8Convertible {
      */
     public void setLogger(IJavetLogger logger) {
         this.logger = logger;
+        promiseRejectCallback = new JavetPromiseRejectCallback(logger);
+        v8Native.setOutputCallback(new OutputCallback() {
+                        @Override
+                        public void onOutput(String output) {
+                            // 在这里处理输出。
+                            logger.info(output);
+                        }
+                    });
     }
 
     /**
