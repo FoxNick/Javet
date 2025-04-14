@@ -11,6 +11,3 @@ index a4e6bfb5..f173be97 100644
  #else
          if (createSnapshotEnabled) {
              v8Isolate = v8::Isolate::Allocate();
--- 
-2.20.1
-
