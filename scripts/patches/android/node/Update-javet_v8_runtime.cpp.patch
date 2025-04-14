@@ -1,0 +1,25 @@
+From b59fd8267b316bb521c4350fc9569d7876b09e48 Mon Sep 17 00:00:00 2001
+From: FoxNick <354435383@qq.com>
+Date: Sun, 13 Apr 2025 22:45:32 +0800
+Subject: [PATCH 138/138] Update javet_v8_runtime.cpp
+
+---
+ cpp/jni/javet_v8_runtime.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/cpp/jni/javet_v8_runtime.cpp b/cpp/jni/javet_v8_runtime.cpp
+index a4e6bfb5..f173be97 100644
+--- a/cpp/jni/javet_v8_runtime.cpp
++++ b/cpp/jni/javet_v8_runtime.cpp
+@@ -370,7 +370,7 @@ namespace Javet {
+             // nodeIsolateData->set_is_building_snapshot(createSnapshotEnabled);
+             node::crypto::InitCryptoOnce(v8Isolate);
+         }
+-        v8Isolate->SetModifyCodeGenerationFromStringsCallback(nullptr);
++        //v8Isolate->SetModifyCodeGenerationFromStringsCallback(nullptr);
+ #else
+         if (createSnapshotEnabled) {
+             v8Isolate = v8::Isolate::Allocate();
+-- 
+2.20.1
+
