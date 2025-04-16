@@ -62,11 +62,11 @@ void redirect(int pipe, std::stop_token stoken, int log_level) {
 }
 
 void startLoggingFromPipe() {
-    thread_stdout = std::jthread([](int *pipefd) {
+    thread_stdout = std::jthread([](int *pipefd, std::stop_token stoken) {
         redirect(pipefd[0], stoken, 4);
     }, pipe_stdout, std::stop_token{});
     
-    thread_stderr = std::jthread([](int *pipefd) {
+    thread_stderr = std::jthread([](int *pipefd, std::stop_token stoken) {
         redirect(pipefd[0], stoken, 6);
     }, pipe_stderr, std::stop_token{});
 }
