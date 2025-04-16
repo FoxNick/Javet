@@ -25,6 +25,7 @@
 #include "javet_native.h"
 #include "javet_v8_runtime.h"
 #include <thread>
+#include <stop_token>
 
 JavaVM* GlobalJavaVM;
 std::thread thread_stdout;
@@ -36,49 +37,48 @@ jobject gJavaObj = nullptr;
 void redirectStreamsToPipe() {
     setvbuf(stdout, 0, _IOLBF, 0);
     setvbuf(stderr, 0, _IONBF, 0);
-
     pipe(pipe_stdout);
     pipe(pipe_stderr);
     dup2(pipe_stdout[1], STDOUT_FILENO);
     dup2(pipe_stderr[1], STDERR_FILENO);
 }
 
-void redirect(int pipe, int log_level) {
+void redirect(int pipe, int log_level, std::stop_token stoken) {
     ssize_t redirect_size;
     char buf[10240];
-    FETCH_JNI_ENV(GlobalJavaVM);
+    FETCH_JNI_ENV(GlobalJavaVM);    
     jclass thiz = jniEnv->GetObjectClass(gJavaObj);
     jmethodID nativeCallback = jniEnv->GetMethodID(thiz, "onOutput", "(ILjava/lang/String;)V");
-    while ((redirect_size = read(pipe, buf, sizeof buf - 1)) > 0) {
-        if (buf[redirect_size - 1] == '\n')  --redirect_size;
+    
+    while (!stoken.stop_requested()) {
+        redirect_size = read(pipe, buf, sizeof buf - 1);
+        if (redirect_size <= 0) break; // 管道关闭或错误时退出
+        
+        if (buf[redirect_size - 1] == '\n') --redirect_size;
         buf[redirect_size] = 0;
         jstring jmsg = static_cast<jstring>(jniEnv->NewStringUTF(buf));
         jniEnv->CallVoidMethod(gJavaObj, nativeCallback, log_level, jmsg);
-        jniEnv->DeleteLocalRef(jmsg); // 及时释放局部引用
+        jniEnv->DeleteLocalRef(jmsg);
     }
 }
 
 void startLoggingFromPipe() {
-    thread_stdout = std::thread([](int *pipefd) {
-        redirect(pipefd[0]， 4);
+    thread_stdout = std::jthread([](std::stop_token stoken, int* pipefd) {
+        redirect(pipefd[0], 4, stoken);
     }, pipe_stdout);
-    thread_stdout.detach();
-    
-    thread_stderr = std::thread([](int *pipefd) {
-        redirect(pipefd[0]， 6);
+
+    thread_stderr = std::jthread([](std::stop_token stoken, int* pipefd) {
+        redirect(pipefd[0], 6, stoken);
     }, pipe_stderr);
-    thread_stderr.detach();
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_caoccao_javet_interop_V8Native_setOutputCallback(JNIEnv *env, jobject, jobject callback) {
     gJavaObj = env->NewGlobalRef(callback);
-
     redirectStreamsToPipe();
     startLoggingFromPipe();
 }
-
 
 jint JNI_OnLoad(JavaVM* javaVM, void* reserved) {
     LOG_INFO("JNI_Onload() begins.");
