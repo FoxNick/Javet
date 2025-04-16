@@ -24,7 +24,7 @@
 #include "javet_logging.h"
 #include "javet_native.h"
 #include "javet_v8_runtime.h"
-#include <jthread>
+#include <thread>
 #include <stop_token>
 
 JavaVM* GlobalJavaVM;
