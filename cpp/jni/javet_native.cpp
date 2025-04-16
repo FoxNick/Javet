@@ -24,38 +24,51 @@
 #include "javet_logging.h"
 #include "javet_native.h"
 #include "javet_v8_runtime.h"
-#include <thread>
+#include <jthread>
+#include <stop_token>
 
 JavaVM* GlobalJavaVM;
-std::thread logger;
-static int pfd[2];
+std::jthread thread_stdout;
+std::jthread thread_stderr;
+static int pipe_stdout[2];
+static int pipe_stderr[2];
 jobject gJavaObj = nullptr;
 
 void redirectStreamsToPipe() {
     setvbuf(stdout, 0, _IOLBF, 0);
     setvbuf(stderr, 0, _IONBF, 0);
 
-    pipe(pfd);
-    dup2(pfd[1], 1);
-    dup2(pfd[1], 2);
+    pipe(pipe_stdout);
+    pipe(pipe_stderr);
+    dup2(pipe_stdout[1], STDOUT_FILENO);
+    dup2(pipe_stderr[1], STDERR_FILENO);
+}
+
+void redirect(int pipe, std::stop_token stoken, int log_level) {
+    ssize_t redirect_size;
+    // Big enough buffer to not get logcat linebreaks in the middle of message tests output.
+    char buf[10240];
+    FETCH_JNI_ENV(GlobalJavaVM);
+    jclass thiz = jniEnv->GetObjectClass(gJavaObj);
+    jmethodID nativeCallback = jniEnv->GetMethodID(thiz, "onOutput", "(ILjava/lang/String;)V");
+    while (!stoken.stop_requested() && (redirect_size = read(pipe, buf, sizeof buf - 1)) > 0) {
+        // __android_log_write will add a new line anyway.
+        if (buf[redirect_size - 1] == '\n')  --redirect_size;
+        buf[redirect_size] = 0;
+        jstring jmsg = static_cast<jstring>(jniEnv->NewStringUTF(buf));
+        jniEnv->CallVoidMethod(gJavaObj, nativeCallback, log_level, jmsg);
+        jniEnv->DeleteLocalRef(jmsg); // 及时释放局部引用
+    }
 }
 
 void startLoggingFromPipe() {
-    logger = std::thread([](int *pipefd) {
-        char buf[128];
-        std::size_t nBytes = 0;
-        FETCH_JNI_ENV(GlobalJavaVM);
-        jclass thiz = jniEnv->GetObjectClass(gJavaObj);
-        jmethodID nativeCallback = jniEnv->GetMethodID(thiz, "onOutput", "(Ljava/lang/String;)V");
-        while ((nBytes = read(pfd[0], buf, sizeof buf - 1)) > 0) {
-            if (buf[nBytes - 1] == '\n') --nBytes;
-            buf[nBytes] = 0;
-            jniEnv->CallVoidMethod(gJavaObj,nativeCallback, static_cast<jstring>(jniEnv->NewStringUTF(buf)));
-            //LOG_INFO(buf);
-        }
-    }, pfd);
-
-    logger.detach();
+    thread_stdout = std::jthread([](int *pipefd) {
+        redirect(pipefd[0], stoken, 4);
+    }, pipe_stdout, std::stop_token{});
+    
+    thread_stderr = std::jthread([](int *pipefd) {
+        redirect(pipefd[0], stoken, 6);
+    }, pipe_stderr, std::stop_token{});
 }
 
 extern "C"
