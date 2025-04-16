@@ -25,11 +25,10 @@
 #include "javet_native.h"
 #include "javet_v8_runtime.h"
 #include <thread>
-#include <stop_token>
 
 JavaVM* GlobalJavaVM;
-std::jthread thread_stdout;
-std::jthread thread_stderr;
+std::thread thread_stdout;
+std::thread thread_stderr;
 static int pipe_stdout[2];
 static int pipe_stderr[2];
 jobject gJavaObj = nullptr;
@@ -44,15 +43,13 @@ void redirectStreamsToPipe() {
     dup2(pipe_stderr[1], STDERR_FILENO);
 }
 
-void redirect(int pipe, std::stop_token stoken, int log_level) {
+void redirect(int pipe, int log_level) {
     ssize_t redirect_size;
-    // Big enough buffer to not get logcat linebreaks in the middle of message tests output.
     char buf[10240];
     FETCH_JNI_ENV(GlobalJavaVM);
     jclass thiz = jniEnv->GetObjectClass(gJavaObj);
     jmethodID nativeCallback = jniEnv->GetMethodID(thiz, "onOutput", "(ILjava/lang/String;)V");
-    while (!stoken.stop_requested() && (redirect_size = read(pipe, buf, sizeof buf - 1)) > 0) {
-        // __android_log_write will add a new line anyway.
+    while ((redirect_size = read(pipe, buf, sizeof buf - 1)) > 0) {
         if (buf[redirect_size - 1] == '\n')  --redirect_size;
         buf[redirect_size] = 0;
         jstring jmsg = static_cast<jstring>(jniEnv->NewStringUTF(buf));
@@ -62,13 +59,15 @@ void redirect(int pipe, std::stop_token stoken, int log_level) {
 }
 
 void startLoggingFromPipe() {
-    thread_stdout = std::jthread([](int *pipefd, std::stop_token stoken) {
-        redirect(pipefd[0], stoken, 4);
-    }, pipe_stdout, std::stop_token{});
+    thread_stdout = std::thread([](int *pipefd) {
+        redirect(pipefd[0]， 4);
+    }, pipe_stdout);
+    thread_stdout.detach();
     
-    thread_stderr = std::jthread([](int *pipefd, std::stop_token stoken) {
-        redirect(pipefd[0], stoken, 6);
-    }, pipe_stderr, std::stop_token{});
+    thread_stderr = std::thread([](int *pipefd) {
+        redirect(pipefd[0]， 6);
+    }, pipe_stderr);
+    thread_stderr.detach();
 }
 
 extern "C"
