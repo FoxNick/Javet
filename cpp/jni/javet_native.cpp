@@ -34,7 +34,7 @@ static int pipe_stderr[2];
 jobject gJavaObj = nullptr;
 
 void redirectStreamsToPipe() {
-    setvbuf(stdout, 0, _IOLBF, 0);
+    setvbuf(stdout, 0, _IONBF, 0);
     setvbuf(stderr, 0, _IONBF, 0);
     pipe(pipe_stdout);
     pipe(pipe_stderr);
