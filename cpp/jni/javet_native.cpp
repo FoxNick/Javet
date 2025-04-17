@@ -25,7 +25,6 @@
 #include "javet_native.h"
 #include "javet_v8_runtime.h"
 #include <thread>
-#include <stop_token>
 
 JavaVM* GlobalJavaVM;
 std::thread thread_stdout;
@@ -43,33 +42,31 @@ void redirectStreamsToPipe() {
     dup2(pipe_stderr[1], STDERR_FILENO);
 }
 
-void redirect(int pipe, int log_level, std::stop_token stoken) {
+void redirect(int pipe, int log_level) {
     ssize_t redirect_size;
     char buf[10240];
-    FETCH_JNI_ENV(GlobalJavaVM);    
+    FETCH_JNI_ENV(GlobalJavaVM);
     jclass thiz = jniEnv->GetObjectClass(gJavaObj);
     jmethodID nativeCallback = jniEnv->GetMethodID(thiz, "onOutput", "(ILjava/lang/String;)V");
-    
-    while (!stoken.stop_requested()) {
-        redirect_size = read(pipe, buf, sizeof buf - 1);
-        if (redirect_size <= 0) break; // 管道关闭或错误时退出
-        
-        if (buf[redirect_size - 1] == '\n') --redirect_size;
+    while ((redirect_size = read(pipe, buf, sizeof buf - 1)) > 0) {
+        if (buf[redirect_size - 1] == '\n')  --redirect_size;
         buf[redirect_size] = 0;
         jstring jmsg = static_cast<jstring>(jniEnv->NewStringUTF(buf));
         jniEnv->CallVoidMethod(gJavaObj, nativeCallback, log_level, jmsg);
-        jniEnv->DeleteLocalRef(jmsg);
+        jniEnv->DeleteLocalRef(jmsg); // 及时释放局部引用
     }
 }
 
 void startLoggingFromPipe() {
-    thread_stdout = std::jthread([](std::stop_token stoken, int* pipefd) {
-        redirect(pipefd[0], 4, stoken);
+    thread_stdout = std::thread([](int *pipefd) {
+        redirect(pipefd[0], 4);
     }, pipe_stdout);
-
-    thread_stderr = std::jthread([](std::stop_token stoken, int* pipefd) {
-        redirect(pipefd[0], 6, stoken);
+    thread_stdout.detach();
+    
+    thread_stderr = std::thread([](int *pipefd) {
+        redirect(pipefd[0], 6);
     }, pipe_stderr);
+    thread_stderr.detach();
 }
 
 extern "C"
