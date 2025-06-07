@@ -1,0 +1,84 @@
+name: AndroidArm64 Node Build
+
+concurrency:
+  group: android_node_build_${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+
+env:
+  JAVET_NODE_VERSION: 22.16.0
+  JAVET_VERSION: 4.1.5
+  ROOT: /home/runner/work/Javet
+
+jobs:
+  build_javet_lib:
+    strategy:
+      matrix:
+        include:
+          - android_arch: arm64
+            android_abi: arm64-v8a
+            i18n_name: i18n
+            cmake_flag: -DENABLE_I18N=1
+            config_patch: sed -i 's/--with-intl=none/--with-intl=full-icu --without-inspector --partly-static/g' android_configure.py
+
+    name: Build Javet ${{ matrix.android_arch }} ${{ matrix.i18n_name }}
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout the code
+      uses: actions/checkout@v4
+
+    - name: Setup Ubuntu
+      run: |
+        sudo apt-get install -y execstack gcc-multilib g++-multilib
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11' 
+
+    - name: Setup Android NDK
+      id: setup-ndk
+      uses: nttld/setup-ndk@v1
+      with:
+        ndk-version: r27c
+        local-cache: false
+
+    - name: Setup Path
+      run: |
+        echo "${{ env.ROOT }}/google/depot_tools" >> $GITHUB_PATH
+
+    - name: Build Node.js
+      run: |
+        cd ${{ env.ROOT }}
+        git clone https://github.com/nodejs/node.git
+        cd node
+        git checkout v${{ env.JAVET_NODE_VERSION }}
+        git apply ../Javet/scripts/patches/android/node/android_configure.py.patch
+        git apply ../Javet/scripts/patches/android/node/common.gypi.patch
+        git apply ../Javet/scripts/patches/android/node/configure.py.patch
+        git apply ../Javet/scripts/patches/android/node/constants-arm.h.patch
+        git apply ../Javet/scripts/patches/android/node/push_registers_asm.cc.patch
+        git apply ../Javet/scripts/patches/android/node/trap-handler.h.patch
+        git apply ../Javet/scripts/patches/android/node/test_crypto_clienthello.cc.patch
+        ${{ matrix.config_patch }}
+        ./android-configure ${{ steps.setup-ndk.outputs.ndk-path }} 24 ${{ matrix.android_arch }}
+        make -j$(getconf _NPROCESSORS_ONLN)
+        mv out out.${{ matrix.android_arch }}.${{ matrix.i18n_name }}
+   
+    - name: Upload Node Directory
+      uses: actions/upload-artifact@v4
+      with:
+        name: node-${{ matrix.android_arch }}-${{ matrix.i18n_name }}
+        path: ${{ env.ROOT }}/node/out.${{ matrix.android_arch }}.${{ matrix.i18n_name }}
+        
+    - name: Copy the i18n
+      if: matrix.i18n_name == 'i18n' && matrix.android_arch == 'arm64'
+      run: |
+        mkdir icu-node
+        cp ../node/deps/icu-tmp/*.dat icu-node
+
+    
