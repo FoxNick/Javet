@@ -231,6 +231,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android
         add_definitions(-D__linux__)
         list(APPEND includeDirs $ENV{JAVA_HOME}/include/linux)
         if(DEFINED V8_DIR)
+            add_definitions(-DV8_TEMPORAL_SUPPORT)
             if(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "(arm64|aarch64)")
                 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -flax-vector-conversions ")
                 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flax-vector-conversions ")
