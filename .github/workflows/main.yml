@@ -72,7 +72,7 @@ jobs:
     - name: Compress Node Binary with UPX
       run: |
         cd ${{ env.ROOT }}/node/out.${{ matrix.android_arch }}.${{ matrix.i18n_name }}/Release
-        upx --best --lzma node -o node-compressed  # 使用LZMA算法获得最佳压缩率[1,6](@ref)
+        upx --ultra-brute node -o node-compressed  # 使用LZMA算法获得最佳压缩率[1,6](@ref)
         ls -lh node*  # 显示压缩前后文件大小对比
    
     - name: Upload Node Directory
