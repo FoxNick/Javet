@@ -33,7 +33,8 @@ jobs:
 
     - name: Setup Ubuntu
       run: |
-        sudo apt-get install -y execstack gcc-multilib g++-multilib upx-ucl
+        sudo apt-get update
+        sudo apt-get install -y execstack gcc-multilib g++-multilib upx-ucl python3-distutils
 
     - name: Setup Python
       uses: actions/setup-python@v5
@@ -53,38 +54,54 @@ jobs:
 
     - name: Build Node.js
       run: |
+        set -e
         cd ${{ env.ROOT }}
         git clone https://github.com/nodejs/node.git
         cd node
         git checkout v${{ env.JAVET_NODE_VERSION }}
-        git apply ../Javet/scripts/patches/android/node/android_configure.py.patch
-        git apply ../Javet/scripts/patches/android/node/common.gypi.patch
-        git apply ../Javet/scripts/patches/android/node/configure.py.patch
-        git apply ../Javet/scripts/patches/android/node/constants-arm.h.patch
-        git apply ../Javet/scripts/patches/android/node/push_registers_asm.cc.patch
-        git apply ../Javet/scripts/patches/android/node/trap-handler.h.patch
-        git apply ../Javet/scripts/patches/android/node/test_crypto_clienthello.cc.patch
+        git apply ../Javet/scripts/patches/android/node/android_configure.py.patch || { echo "Patch android_configure.py failed"; exit 1; }
+        git apply ../Javet/scripts/patches/android/node/common.gypi.patch || { echo "Patch common.gypi failed"; exit 1; }
+        git apply ../Javet/scripts/patches/android/node/configure.py.patch || { echo "Patch configure.py failed"; exit 1; }
+        git apply ../Javet/scripts/patches/android/node/constants-arm.h.patch || { echo "Patch constants-arm.h failed"; exit 1; }
+        git apply ../Javet/scripts/patches/android/node/push_registers_asm.cc.patch || { echo "Patch push_registers_asm.cc failed"; exit 1; }
+        git apply ../Javet/scripts/patches/android/node/trap-handler.h.patch || { echo "Patch trap-handler.h failed"; exit 1; }
+        git apply ../Javet/scripts/patches/android/node/test_crypto_clienthello.cc.patch || { echo "Patch test_crypto_clienthello.cc failed"; exit 1; }
         ${{ matrix.config_patch }}
         ./android-configure ${{ steps.setup-ndk.outputs.ndk-path }} 24 ${{ matrix.android_arch }}
         make -j$(getconf _NPROCESSORS_ONLN)
         mv out out.${{ matrix.android_arch }}.${{ matrix.i18n_name }}
-    
+
+    - name: Check Node Binary Existence
+      run: |
+        if [ ! -f "${{ env.ROOT }}/node/out.${{ matrix.android_arch }}.${{ matrix.i18n_name }}/Release/node" ]; then
+          echo "node binary not found, build failed"
+          exit 1
+        fi
+
     - name: Compress Node Binary with UPX
       run: |
         cd ${{ env.ROOT }}/node/out.${{ matrix.android_arch }}.${{ matrix.i18n_name }}/Release
-        upx --best --lzma node -o node-compressed  # 使用LZMA算法获得最佳压缩率[1,6](@ref)
-        ls -lh node*  # 显示压缩前后文件大小对比
-   
+        upx --best --lzma node -o node-compressed
+        ls -lh node*
+
     - name: Upload Node Directory
       uses: actions/upload-artifact@v4
       with:
         name: node-${{ matrix.android_arch }}-${{ matrix.i18n_name }}
         path: ${{ env.ROOT }}/node/out.${{ matrix.android_arch }}.${{ matrix.i18n_name }}/Release/node-compressed
-        
+
     - name: Copy the i18n
       if: matrix.i18n_name == 'i18n' && matrix.android_arch == 'arm64'
       run: |
         mkdir icu-node
         cp ../node/deps/icu-tmp/*.dat icu-node
 
-    
+    - name: 结束构建流程（成功）
+      if: success()
+      run: |
+        echo "编译流程成功结束！"
+
+    - name: 结束构建流程（失败）
+      if: failure()
+      run: |
+        echo "编译流程失败，请检查日志！"
