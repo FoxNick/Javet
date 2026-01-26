@@ -21,12 +21,12 @@ jobs:
             android_abi: arm64-v8a
             i18n_name: i18n
             i18n_flag: --i18n
-            config_patch: sed -i 's/--with-intl=none/--with-intl=full-icu/g' android_configure.py
+            config_patch: sed -i 's/--with-intl=none/--with-intl=full-icu --without-inspector/g' android_configure.py
           - android_arch: x86_64
             android_abi: x86_64
             i18n_name: i18n
             i18n_flag: --i18n
-            config_patch: sed -i 's/--with-intl=none/--with-intl=full-icu/g' android_configure.py
+            config_patch: sed -i 's/--with-intl=none/--with-intl=full-icu --without-inspector/g' android_configure.py
 
     name: Build Javet ${{ matrix.android_arch }} ${{ matrix.i18n_name }}
     runs-on: ubuntu-latest
