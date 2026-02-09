@@ -372,7 +372,7 @@ namespace Javet {
             // nodeIsolateData->set_is_building_snapshot(createSnapshotEnabled);
             node::crypto::InitCryptoOnce(v8Isolate);
         }
-        v8Isolate->SetModifyCodeGenerationFromStringsCallback(nullptr);
+        //v8Isolate->SetModifyCodeGenerationFromStringsCallback(nullptr);
 #else
         if (createSnapshotEnabled) {
             v8Isolate = v8::Isolate::Allocate();
@@ -422,4 +422,5 @@ namespace Javet {
         CloseV8Isolate();
     }
 }
+
 
