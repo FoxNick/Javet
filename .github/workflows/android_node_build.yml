@@ -39,7 +39,7 @@ jobs:
             config_patch: sed -i 's/--with-intl=none/--with-intl=full-icu/g' android_configure.py
 
     name: Build Javet ${{ matrix.android_arch }} ${{ matrix.i18n_name }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04  # 或 ubuntu-20.04
 
     steps:
 
@@ -127,7 +127,7 @@ jobs:
   build_javet_aar:
     needs: [build_javet_lib]
     name: Build Javet AAR
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
 
