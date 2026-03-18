@@ -504,7 +504,7 @@ namespace Javet {
                 v8Isolate = Javet::NewIsolateForSnapshotRestore(
                     v8PlatformPointer, &uvLoop, nodeSnapshotData.get(), nodeArrayBufferAllocator);
                 //v8Isolate->SetModifyCodeGenerationFromStringsCallback(nullptr);
-                v8Isolate->SetPromiseRejectCallback(Javet::Callback::JavetPromiseRejectCallback);
+                //v8Isolate->SetPromiseRejectCallback(Javet::Callback::JavetPromiseRejectCallback);
             }
             else {
                 LOG_ERROR("Failed to parse EmbedderSnapshotData from blob.");
@@ -526,7 +526,7 @@ namespace Javet {
                 node::crypto::InitCryptoOnce(v8Isolate);
             }
             //v8Isolate->SetModifyCodeGenerationFromStringsCallback(nullptr);
-            v8Isolate->SetPromiseRejectCallback(Javet::Callback::JavetPromiseRejectCallback);
+            //v8Isolate->SetPromiseRejectCallback(Javet::Callback::JavetPromiseRejectCallback);
         }
 #else
         if (createSnapshotEnabled) {
